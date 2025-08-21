@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Показать текст</title>
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="../components/text-display.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+    a-scene { height: 500px; width: 100%; border: 1px solid #ddd; }
+    .info { margin: 20px 0; }
+    .controls { margin: 10px 0; }
+    .control-group { margin: 15px 0; }
+    label { display: block; margin: 5px 0; }
+    input, select { padding: 8px; margin: 5px 0; width: 200px; }
+    button { padding: 8px 16px; background: #9C27B0; color: white; border: none; cursor: pointer; }
+    button:hover { background: #7b1fa2; }
+    .color-preview { display: inline-block; width: 20px; height: 20px; margin-left: 10px; vertical-align: middle; }
+  </style>
+</head>
+<body>
+  <h1>Показать текст</h1>
+  
+  <div class="info">
+    <p>Этот компонент отображает 3D текст с настраиваемыми свойствами.</p>
+    <p>Используйте форму ниже для изменения текста и его свойств в реальном времени.</p>
+  </div>
+  
+  <div class="controls">
+    <div class="control-group">
+      <label for="text-input">Текст:</label>
+      <input type="text" id="text-input" value="Привет AFRAME!" placeholder="Введите текст">
+    </div>
+    
+    <div class="control-group">
+      <label for="color-input">Цвет текста:</label>
+      <input type="color" id="color-input" value="#FFFFFF">
+      <span class="color-preview" id="color-preview"></span>
+    </div>
+    
+    <div class="control-group">
+      <label for="size-input">Размер текста:</label>
+      <input type="range" id="size-input" min="0.5" max="3" step="0.1" value="1">
+      <span id="size-value">1.0</span>
+    </div>
+    
+    <div class="control-group">
+      <label for="align-select">Выравнивание:</label>
+      <select id="align-select">
+        <option value="left">Левый</option>
+        <option value="center" selected>Центр</option>
+        <option value="right">Правый</option>
+      </select>
+    </div>
+    
+    <div class="control-group">
+      <label>Позиция:</label>
+      <div>
+        <input type="number" id="pos-x" value="0" step="0.1" placeholder="X" style="width: 60px;">
+        <input type="number" id="pos-y" value="2" step="0.1" placeholder="Y" style="width: 60px;">
+        <input type="number" id="pos-z" value="-3" step="0.1" placeholder="Z" style="width: 60px;">
+      </div>
+    </div>
+    
+    <button id="update-btn">Применить изменения</button>
+  </div>
+  
+  <a-scene>
+    <a-entity id="text-entity" text-display></a-entity>
+    
+    <a-plane position="0 0 -4" rotation="-90 0 0" width="10" height="10" color="#7BC8A4"></a-plane>
+    <a-sky color="#ECECEC"></a-sky>
+    
+    <a-entity position="0 1.6 3" rotation="0 180 0">
+      <a-entity camera look-controls wasd-controls></a-entity>
+    </a-entity>
+  </a-scene>
+  
+  <script>
+    const scene = document.querySelector('a-scene');
+    const textInput = document.getElementById('text-input');
+    const colorInput = document.getElementById('color-input');
+    const colorPreview = document.getElementById('color-preview');
+    const sizeInput = document.getElementById('size-input');
+    const sizeValue = document.getElementById('size-value');
+    const alignSelect = document.getElementById('align-select');
+    const posX = document.getElementById('pos-x');
+    const posY = document.getElementById('pos-y');
+    const posZ = document.getElementById('pos-z');
+    const updateBtn = document.getElementById('update-btn');
+    
+    scene.addEventListener('loaded', function() {
+      const textEntity = document.getElementById('text-entity');
+      
+      // Установить начальные значения
+      updateText();
+      
+      // Обновление предпросмотра цвета
+      colorInput.addEventListener('input', function() {
+        colorPreview.style.backgroundColor = this.value;
+      });
+      colorPreview.style.backgroundColor = colorInput.value;
+      
+      // Обновление значения размера
+      sizeInput.addEventListener('input', function() {
+        sizeValue.textContent = this.value;
+      });
+      
+      // Кнопка применения изменений
+      updateBtn.addEventListener('click', updateText);
+      
+      function updateText() {
+        const text = textInput.value || 'Привет AFRAME!';
+        const color = colorInput.value;
+        const size = parseFloat(sizeInput.value);
+        const align = alignSelect.value;
+        const position = `${posX.value} ${posY.value} ${posZ.value}`;
+        
+        textEntity.setAttribute('text-display', {
+          text: text,
+          color: color,
+          size: size,
+          align: align,
+          position: position
+        });
+      }
+    });
+  </script>
+</body>
+</html>
