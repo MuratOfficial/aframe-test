@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>JSON загрузка</title>
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script>
+    AFRAME.registerComponent('text-display', {
+      schema: {
+        text: {type: 'string', default: ''},
+        color: {type: 'color', default: '#FFF'},
+        size: {type: 'number', default: 1},
+        align: {type: 'string', default: 'center'},
+        position: {type: 'string', default: '0 0 0'}
+      },
+      
+      init: function() {
+        const textEl = document.createElement('a-text');
+        textEl.setAttribute('value', this.data.text);
+        textEl.setAttribute('color', this.data.color);
+        textEl.setAttribute('width', this.data.size * 5);
+        textEl.setAttribute('align', this.data.align);
+        textEl.setAttribute('position', this.data.position);
+        
+        this.el.appendChild(textEl);
+      }
+    });
+    
+    AFRAME.registerComponent('color-changer', {
+      schema: {
+        color: {type: 'color', default: '#FFF'},
+        event: {type: 'string', default: 'click'},
+        duration: {type: 'number', default: 500}
+      },
+      
+      init: function() {
+        const originalColor = this.el.getAttribute('material').color || '#FFF';
+        
+        this.el.addEventListener(this.data.event, () => {
+          this.el.setAttribute('material', 'color', this.data.color);
+          
+          setTimeout(() => {
+            this.el.setAttribute('material', 'color', originalColor);
+          }, this.data.duration);
+        });
+      }
+    });
+  </script>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 0; 
+      padding: 0; 
+      background: #f5f5f5; 
+      overflow: hidden;
+      height: 100vh;
+    }
+    
+    .container { 
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    
+    h1 { 
+      color: #333; 
+      text-align: center; 
+      margin: 0;
+      padding: 15px 0;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    
+    .controls-panel {
+      width: 400px;
+      background: white;
+      padding: 20px;
+      overflow-y: auto;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      z-index: 100;
+    }
+    
+    .json-input-container {
+      margin-bottom: 15px;
+    }
+    
+    #json-input { 
+      width: 100%; 
+      height: 250px; 
+      font-family: 'Courier New', monospace;
+      padding: 15px;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      resize: vertical;
+      font-size: 14px;
+      line-height: 1.4;
+      box-sizing: border-box;
+    }
+    
+    #json-input:focus {
+      border-color: #2196F3;
+      outline: none;
+    }
+    
+    .examples { 
+      margin: 20px 0; 
+    }
+    
+    .example-btn {
+      padding: 8px 16px;
+      margin: 0 5px 5px 0;
+      background: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .example-btn:hover { background: #0b7dda; }
+    
+    .button-group { 
+      margin-top: 15px; 
+      display: flex; 
+      gap: 10px; 
+    }
+    
+    #load-btn, #reset-btn { 
+      padding: 12px 24px; 
+      color: white; 
+      border: none; 
+      border-radius: 4px; 
+      cursor: pointer;
+      font-weight: bold;
+      flex: 1;
+    }
+    
+    #load-btn { 
+      background: #4CAF50; 
+    }
+    
+    #load-btn:hover { background: #45a049; }
+    
+    #reset-btn { 
+      background: #f44336; 
+    }
+    
+    #reset-btn:hover { background: #da190b; }
+    
+    #status { 
+      margin-top: 15px; 
+      padding: 10px; 
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    
+    .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    
+    .scene-container {
+      flex: 1;
+      position: relative;
+    }
+    
+    a-scene { 
+      height: 100%;
+      width: 100%;
+    }
+    
+    .toggle-controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      border-radius: 4px;
+      padding: 8px 12px;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    .toggle-controls:hover {
+      background: white;
+    }
+    
+    .controls-hidden .controls-panel {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>JSON Загрузка</h1>
+    
+    <div class="content">
+      <div class="controls-panel">
+        <div class="json-input-container">
+          <label for="json-input">JSON конфигурация:</label>
+          <textarea id="json-input">
+                {
+                "name": "My Custom Object",
+                "components": {
+                    "text-display": {
+                    "text": "Hello from JSON!",
+                    "color": "#FF5733",
+                    "size": 1.5,
+                    "align": "center",
+                    "position": "0 2 -3"
+                    },
+                    "color-changer": {
+                    "color": "#33FF57",
+                    "event": "mouseenter",
+                    "duration": 1000
+                    },
+                    "geometry": {
+                    "primitive": "box"
+                    },
+                    "material": {
+                    "color": "#4CC3D9"
+                    },
+                    "position": "0 1.6 -3",
+                    "rotation": "0 45 0",
+                    "scale": "1 1 1"
+                }
+                }
+          </textarea>
+        </div>
+        
+        <div class="examples">
+          <strong>Примеры конфигураций:</strong><br>
+          <button class="example-btn" data-example="box">Куб с текстом</button>
+          <button class="example-btn" data-example="sphere">Сфера</button>
+          <button class="example-btn" data-example="cylinder">Цилиндр</button>
+          <button class="example-btn" data-example="complex">Комплексный объект</button>
+        </div>
+        
+        <div class="button-group">
+          <button id="load-btn">Загрузить конфигурацию</button>
+          <button id="reset-btn">Сбросить сцену</button>
+        </div>
+        
+        <div id="status" class="info">Готов к загрузке конфигурации</div>
+      </div>
+      
+      <div class="scene-container">
+        <button class="toggle-controls" id="toggle-controls">≡ Панель управления</button>
+        <a-scene>
+          <a-plane position="0 0 -4" rotation="-90 0 0" width="10" height="10" color="#7BC8A4"></a-plane>
+          <a-sky color="#ECECEC"></a-sky>
+          
+          <!-- Контейнер для объектов, созданных из JSON -->
+          <a-entity id="json-objects-container"></a-entity>
+          
+          <!-- Камера с контроллерами -->
+          <a-entity position="0 1.6 4" rotation="0 180 0">
+            <a-entity camera look-controls wasd-controls></a-entity>
+          </a-entity>
+        </a-scene>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Примеры конфигураций
+    const examples = {
+      box: {
+        "name": "Простой куб",
+        "components": {
+          "geometry": {"primitive": "box"},
+          "material": {"color": "#4CC3D9"},
+          "position": "0 1.6 -3",
+          "rotation": "0 45 0"
+        }
+      },
+      sphere: {
+        "name": "Сфера",
+        "components": {
+          "geometry": {"primitive": "sphere", "radius": 0.5},
+          "material": {"color": "#EF2D5E"},
+          "position": "0 1.6 -3",
+          "rotation": "0 0 0"
+        }
+      },
+      cylinder: {
+        "name": "Цилиндр",
+        "components": {
+          "geometry": {"primitive": "cylinder", "radius": 0.3, "height": 1},
+          "material": {"color": "#33FF57"},
+          "position": "0 1.6 -3",
+          "rotation": "0 0 0"
+        }
+      },
+      complex: {
+        "name": "Комплексный объект",
+        "components": {
+          "text-display": {
+            "text": "AFRAME JSON",
+            "color": "#FFFFFF",
+            "size": 0.8,
+            "align": "center",
+            "position": "0 0.5 0"
+          },
+          "color-changer": {
+            "color": "#FF9900",
+            "event": "click",
+            "duration": 500
+          },
+          "geometry": {"primitive": "box"},
+          "material": {"color": "#2196F3"},
+          "position": "0 1.6 -3",
+          "rotation": "0 0 0",
+          "scale": "1 1 1"
+        }
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const jsonInput = document.getElementById('json-input');
+      const loadBtn = document.getElementById('load-btn');
+      const resetBtn = document.getElementById('reset-btn');
+      const statusEl = document.getElementById('status');
+      const containerEl = document.getElementById('json-objects-container');
+      const exampleBtns = document.querySelectorAll('.example-btn');
+      const toggleControlsBtn = document.getElementById('toggle-controls');
+      const controlsPanel = document.querySelector('.controls-panel');
+      
+      // Переключение видимости панели управления
+      let controlsVisible = true;
+      toggleControlsBtn.addEventListener('click', function() {
+        controlsVisible = !controlsVisible;
+        document.body.classList.toggle('controls-hidden', !controlsVisible);
+        toggleControlsBtn.textContent = controlsVisible ? '≡ Скрыть панель' : '≡ Панель управления';
+      });
+      
+      // Загрузка конфигурации
+      loadBtn.addEventListener('click', function() {
+        loadConfiguration();
+      });
+      
+      // Сброс сцены
+      resetBtn.addEventListener('click', function() {
+        resetScene();
+        statusEl.textContent = 'Сцена сброшена';
+        statusEl.className = 'info';
+      });
+      
+      // Примеры конфигураций
+      exampleBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const exampleKey = this.getAttribute('data-example');
+          if (examples[exampleKey]) {
+            jsonInput.value = JSON.stringify(examples[exampleKey], null, 2);
+            statusEl.textContent = `Загружен пример: ${examples[exampleKey].name}`;
+            statusEl.className = 'info';
+          }
+        });
+      });
+      
+      function loadConfiguration() {
+        try {
+          const config = JSON.parse(jsonInput.value);
+          
+          // Создаем новый объект
+          const newObject = document.createElement('a-entity');
+          newObject.id = `json-object-${Date.now()}`;
+          
+          // Применяем конфигурацию
+          applyConfiguration(newObject, config);
+          
+          // Добавляем объект в контейнер
+          containerEl.appendChild(newObject);
+          
+          statusEl.textContent = `Успешно загружено: "${config.name}"`;
+          statusEl.className = 'success';
+          
+        } catch (e) {
+          statusEl.textContent = `Ошибка: ${e.message}`;
+          statusEl.className = 'error';
+          console.error('JSON parsing error:', e);
+        }
+      }
+      
+      function applyConfiguration(entity, config) {
+        if (config.components) {
+          for (const [component, data] of Object.entries(config.components)) {
+            if (typeof data === 'object') {
+              // Для компонентов с объектными свойствами
+              let attrValue = '';
+              
+              if (component === 'geometry' || component === 'material') {
+                // Специальная обработка для стандартных компонентов
+                for (const [key, value] of Object.entries(data)) {
+                  if (attrValue) attrValue += '; ';
+                  attrValue += `${key}: ${value}`;
+                }
+              } else {
+                // Для кастомных компонентов
+                for (const [key, value] of Object.entries(data)) {
+                  if (attrValue) attrValue += '; ';
+                  attrValue += `${key}: ${JSON.stringify(value)}`;
+                }
+              }
+              
+              entity.setAttribute(component, attrValue);
+            } else {
+              // Для простых атрибутов (position, rotation, scale)
+              entity.setAttribute(component, data);
+            }
+          }
+        }
+      }
+      
+      function resetScene() {
+        // Удаляем все созданные объекты
+        while (containerEl.firstChild) {
+          containerEl.removeChild(containerEl.firstChild);
+        }
+      }
+      
+      // Инициализация
+      statusEl.textContent = 'Готов к загрузке конфигурации';
+      statusEl.className = 'info';
+    });
+  </script>
+</body>
+</html>
