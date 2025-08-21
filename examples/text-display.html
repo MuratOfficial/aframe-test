@@ -4,93 +4,261 @@
   <meta charset="utf-8">
   <title>Показать текст</title>
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-  <script src="../components/text-display.js"></script>
+  <script>
+    // Компонент для отображения текста
+    AFRAME.registerComponent('text-display', {
+      schema: {
+        text: {type: 'string', default: ''},
+        color: {type: 'color', default: '#FFF'},
+        size: {type: 'number', default: 1},
+        align: {type: 'string', default: 'center'},
+        position: {type: 'string', default: '0 0 0'}
+      },
+      
+      init: function() {
+        // Создаем текстовый элемент
+        this.textEl = document.createElement('a-text');
+        this.el.appendChild(this.textEl);
+        
+        // Устанавливаем начальные значения
+        this.updateText();
+      },
+      
+      update: function() {
+        this.updateText();
+      },
+      
+      updateText: function() {
+        if (this.textEl) {
+          this.textEl.setAttribute('value', this.data.text);
+          this.textEl.setAttribute('color', this.data.color);
+          this.textEl.setAttribute('width', this.data.size * 5);
+          this.textEl.setAttribute('align', this.data.align);
+          this.textEl.setAttribute('position', this.data.position);
+          
+          // Делаем текст неинтерактивным
+          this.textEl.setAttribute('class', 'non-interactive');
+        }
+      }
+    });
+  </script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-    a-scene { height: 500px; width: 100%; border: 1px solid #ddd; }
-    .info { margin: 20px 0; }
-    .controls { margin: 10px 0; }
-    .control-group { margin: 15px 0; }
-    label { display: block; margin: 5px 0; }
-    input, select { padding: 8px; margin: 5px 0; width: 200px; }
-    button { padding: 8px 16px; background: #9C27B0; color: white; border: none; cursor: pointer; }
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 0; 
+      padding: 20px; 
+      background: #f5f5f5;
+      overflow: hidden;
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    
+    .content {
+      display: flex;
+      flex: 1;
+      gap: 20px;
+    }
+    
+    .controls-panel {
+      width: 400px;
+      background: white;
+      padding: 20px;
+      overflow-y: auto;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      z-index: 100;
+    }
+    
+    a-scene { 
+      flex: 1;
+      height: 100%;
+      border: 1px solid #ddd; 
+      background: white;
+      border-radius: 8px;
+    }
+    
+    .info { 
+      margin: 20px 0; 
+      padding: 15px;
+      background: white;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .control-group { 
+      margin: 15px 0; 
+    }
+    
+    label { 
+      display: block; 
+      margin: 5px 0; 
+      font-weight: bold;
+    }
+    
+    input, select { 
+      padding: 8px; 
+      margin: 5px 0; 
+      width: 100%; 
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    
+    button { 
+      padding: 12px 24px; 
+      background: #9C27B0; 
+      color: white; 
+      border: none; 
+      cursor: pointer; 
+      border-radius: 4px;
+      font-weight: bold;
+      width: 100%;
+      margin-top: 10px;
+    }
+    
     button:hover { background: #7b1fa2; }
-    .color-preview { display: inline-block; width: 20px; height: 20px; margin-left: 10px; vertical-align: middle; }
+    
+    .color-preview { 
+      display: inline-block; 
+      width: 20px; 
+      height: 20px; 
+      margin-left: 10px; 
+      vertical-align: middle; 
+      border: 1px solid #ddd;
+      border-radius: 3px;
+    }
+    
+    .position-controls {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .position-controls input {
+      width: 80px;
+    }
+    
+    /* Стиль для неинтерактивных элементов */
+    .non-interactive {
+      pointer-events: none;
+    }
+    
+    .toggle-controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      border-radius: 4px;
+      padding: 8px 12px;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 <body>
-  <h1>Показать текст</h1>
-  
-  <div class="info">
-    <p>Этот компонент отображает 3D текст с настраиваемыми свойствами.</p>
-    <p>Используйте форму ниже для изменения текста и его свойств в реальном времени.</p>
-  </div>
-  
-  <div class="controls">
-    <div class="control-group">
-      <label for="text-input">Текст:</label>
-      <input type="text" id="text-input" value="Привет AFRAME!" placeholder="Введите текст">
-    </div>
+  <div class="container">
+    <h1>Показать текст в VR</h1>
     
-    <div class="control-group">
-      <label for="color-input">Цвет текста:</label>
-      <input type="color" id="color-input" value="#FFFFFF">
-      <span class="color-preview" id="color-preview"></span>
-    </div>
-    
-    <div class="control-group">
-      <label for="size-input">Размер текста:</label>
-      <input type="range" id="size-input" min="0.5" max="3" step="0.1" value="1">
-      <span id="size-value">1.0</span>
-    </div>
-    
-    <div class="control-group">
-      <label for="align-select">Выравнивание:</label>
-      <select id="align-select">
-        <option value="left">Левый</option>
-        <option value="center" selected>Центр</option>
-        <option value="right">Правый</option>
-      </select>
-    </div>
-    
-    <div class="control-group">
-      <label>Позиция:</label>
-      <div>
-        <input type="number" id="pos-x" value="0" step="0.1" placeholder="X" style="width: 60px;">
-        <input type="number" id="pos-y" value="2" step="0.1" placeholder="Y" style="width: 60px;">
-        <input type="number" id="pos-z" value="-3" step="0.1" placeholder="Z" style="width: 60px;">
+    <div class="content">
+      <div class="controls-panel">
+        <div class="info">
+          <p>Используйте WASD для движения, мышку для осмотра.</p>
+          <p>Настройте текст с помощью панели управления.</p>
+        </div>
+        
+        <div class="control-group">
+          <label for="text-input">Текст:</label>
+          <input type="text" id="text-input" value="Привет AFRAME!" placeholder="Введите текст">
+        </div>
+        
+        <div class="control-group">
+          <label for="color-input">Цвет текста:</label>
+          <input type="color" id="color-input" value="#FFFFFF">
+          <span class="color-preview" id="color-preview"></span>
+        </div>
+        
+        <div class="control-group">
+          <label for="size-input">Размер текста: <span id="size-value">1.0</span></label>
+          <input type="range" id="size-input" min="0.5" max="3" step="0.1" value="1">
+        </div>
+        
+        <div class="control-group">
+          <label for="align-select">Выравнивание:</label>
+          <select id="align-select">
+            <option value="left">Левый</option>
+            <option value="center" selected>Центр</option>
+            <option value="right">Правый</option>
+          </select>
+        </div>
+        
+        <div class="control-group">
+          <label>Позиция текста:</label>
+          <div class="position-controls">
+            <div>
+              <label>X</label>
+              <input type="number" id="pos-x" value="0" step="0.1">
+            </div>
+            <div>
+              <label>Y</label>
+              <input type="number" id="pos-y" value="2" step="0.1">
+            </div>
+            <div>
+              <label>Z</label>
+              <input type="number" id="pos-z" value="-3" step="0.1">
+            </div>
+          </div>
+        </div>
+        
+        <button id="update-btn">Применить изменения</button>
+        <button id="reset-camera">Сбросить камеру</button>
       </div>
+      
+      <a-scene>
+        <!-- Текстовый элемент -->
+        <a-entity id="text-entity" text-display></a-entity>
+        
+        <!-- Сцена -->
+        <a-plane position="0 0 -4" rotation="-90 0 0" width="20" height="20" color="#7BC8A4" shadow></a-plane>
+        
+        <!-- Освещение -->
+        <a-light type="ambient" color="#445"></a-light>
+        <a-light type="directional" color="#FFF" intensity="0.6" position="-0.5 1 1" cast-shadow></a-light>
+        
+        <!-- Небо -->
+        <a-sky color="#ECECEC"></a-sky>
+        
+        <!-- Камера с контроллерами - правильное расположение -->
+        <a-entity id="camera-rig" position="0 1.6 0">
+          <a-entity id="camera" camera position="0 0 0" look-controls wasd-controls="acceleration:100;"></a-entity>
+        </a-entity>
+        
+        <!-- Референсные объекты для ориентации -->
+        <a-box position="-2 0.5 -3" rotation="0 45 0" color="#4CC3D9" shadow></a-box>
+        <a-sphere position="2 0.5 -3" radius="0.5" color="#EF2D5E" shadow></a-sphere>
+      </a-scene>
     </div>
-    
-    <button id="update-btn">Применить изменения</button>
   </div>
-  
-  <a-scene>
-    <a-entity id="text-entity" text-display></a-entity>
-    
-    <a-plane position="0 0 -4" rotation="-90 0 0" width="10" height="10" color="#7BC8A4"></a-plane>
-    <a-sky color="#ECECEC"></a-sky>
-    
-    <a-entity position="0 1.6 3" rotation="0 180 0">
-      <a-entity camera look-controls wasd-controls></a-entity>
-    </a-entity>
-  </a-scene>
   
   <script>
-    const scene = document.querySelector('a-scene');
-    const textInput = document.getElementById('text-input');
-    const colorInput = document.getElementById('color-input');
-    const colorPreview = document.getElementById('color-preview');
-    const sizeInput = document.getElementById('size-input');
-    const sizeValue = document.getElementById('size-value');
-    const alignSelect = document.getElementById('align-select');
-    const posX = document.getElementById('pos-x');
-    const posY = document.getElementById('pos-y');
-    const posZ = document.getElementById('pos-z');
-    const updateBtn = document.getElementById('update-btn');
-    
-    scene.addEventListener('loaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      const textInput = document.getElementById('text-input');
+      const colorInput = document.getElementById('color-input');
+      const colorPreview = document.getElementById('color-preview');
+      const sizeInput = document.getElementById('size-input');
+      const sizeValue = document.getElementById('size-value');
+      const alignSelect = document.getElementById('align-select');
+      const posX = document.getElementById('pos-x');
+      const posY = document.getElementById('pos-y');
+      const posZ = document.getElementById('pos-z');
+      const updateBtn = document.getElementById('update-btn');
+      const resetCameraBtn = document.getElementById('reset-camera');
+      
       const textEntity = document.getElementById('text-entity');
+      const cameraRig = document.getElementById('camera-rig');
       
       // Установить начальные значения
       updateText();
@@ -109,6 +277,13 @@
       // Кнопка применения изменений
       updateBtn.addEventListener('click', updateText);
       
+      // Сброс камеры
+      resetCameraBtn.addEventListener('click', function() {
+        cameraRig.setAttribute('position', '0 1.6 0');
+        const camera = document.querySelector('[camera]');
+        camera.setAttribute('rotation', '0 0 0');
+      });
+      
       function updateText() {
         const text = textInput.value || 'Привет AFRAME!';
         const color = colorInput.value;
@@ -124,6 +299,20 @@
           position: position
         });
       }
+      
+      // Автоматическое обновление при изменении полей ввода
+      textInput.addEventListener('input', updateText);
+      colorInput.addEventListener('input', updateText);
+      sizeInput.addEventListener('input', updateText);
+      alignSelect.addEventListener('change', updateText);
+      posX.addEventListener('input', updateText);
+      posY.addEventListener('input', updateText);
+      posZ.addEventListener('input', updateText);
+      
+      // Добавляем инструкции
+      setTimeout(() => {
+        alert('Управление камерой:\n• WASD - движение\n• Мышь - осмотр вокруг\n• Сброс камеры - кнопка "Сбросить камеру"');
+      }, 1000);
     });
   </script>
 </body>

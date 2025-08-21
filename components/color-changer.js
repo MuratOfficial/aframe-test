@@ -6,23 +6,26 @@ AFRAME.registerComponent('color-changer', {
   },
 
   init: function() {
-    const el = this.el;
-    const originalColor = el.getAttribute('material').color;
-    this.originalColor = originalColor || '#FFFFFF';
-    
     this.changeColor = this.changeColor.bind(this);
-    el.addEventListener(this.data.event, this.changeColor);
+    this.el.addEventListener(this.data.event, this.changeColor);
   },
 
   changeColor: function() {
     const el = this.el;
-    const originalColor = this.originalColor;
+    const currentColor = el.getAttribute('material').color;
     const newColor = this.data.color;
     
+    // Сохраняем текущий цвет как исходный
+    this.originalColor = currentColor;
+    
+    // Меняем цвет на новый
     el.setAttribute('material', 'color', newColor);
     
+    // Возвращаем исходный цвет через указанное время
     setTimeout(() => {
-      el.setAttribute('material', 'color', originalColor);
+      if (this.originalColor) {
+        el.setAttribute('material', 'color', this.originalColor);
+      }
     }, this.data.duration);
   },
 
