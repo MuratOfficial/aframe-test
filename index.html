@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>AFRAME Примеры</title>
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; }
+    h1 { color: #333; text-align: center; }
+    .example-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+      gap: 20px; 
+      margin: 30px 0; 
+    }
+    .example-card { 
+      background: #f8f9fa; 
+      border-radius: 8px; 
+      padding: 20px; 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease;
+    }
+    .example-card:hover { 
+      transform: translateY(-5px); 
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .example-title { 
+      color: #2196F3; 
+      margin-top: 0; 
+      border-bottom: 2px solid #2196F3; 
+      padding-bottom: 10px;
+    }
+    .example-desc { 
+      color: #666; 
+      margin: 15px 0; 
+      min-height: 60px;
+    }
+    .example-link { 
+      display: inline-block; 
+      padding: 10px 20px; 
+      background: #2196F3; 
+      color: white; 
+      text-decoration: none; 
+      border-radius: 4px; 
+      font-weight: bold;
+    }
+    .example-link:hover { background: #0b7dda; }
+
+  </style>
+</head>
+<body>
+  <h1>AFRAME Пример</h1>
+  <p style="text-align: center; color: #666;">Демонстрация пользовательских компонентов для AFRAME</p>
+  
+  <div class="example-grid">
+    <div class="example-card">
+      <h3 class="example-title">Color Changer</h3>
+      <p class="example-desc">Компонент меняет цвет объекта при взаимодействии (клик, наведение и т.д.)</p>
+      <a class="example-link">Открыть демо</a>
+    </div>
+    
+
+  </div>
+  
+
+</body>
+</html>
